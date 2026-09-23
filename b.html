@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Читуни — книжковий rehab</title>
+<meta name="description" content="Одна книжка. Один місяць. Читаємо разом — і цього разу таки доходимо до останньої сторінки.">
+<meta property="og:title" content="Читуни — книжковий rehab">
+<meta property="og:description" content="Для тих, хто купує книжки швидше, ніж читає. Одна книжка на місяць, читаємо разом з Оленою Кравець.">
+<meta property="og:image" content="/img/og.jpg">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --orange:#D9641E;
+  --orange-text:#A8460F;
+  --orange-hover:#C4551A;
+  --blue:#1E4457;
+  --blue-light:#3E7089;
+  --ink:#122430;
+  --cream:#FBF6EC;
+  --cream-2:#F1E4D1;
+  --muted:#6B6257;
+  --line:#E3D9C7;
+
+  --display:"Unbounded","Manrope",-apple-system,"Segoe UI",sans-serif;
+  --body:"Manrope",-apple-system,"Segoe UI Variable","Segoe UI",system-ui,sans-serif;
+
+  --turn:150vh;
+  --gutter:clamp(22px,6vw,64px);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:auto;-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--body);
+  background:var(--ink);
+  color:var(--blue);
+  font-size:clamp(16px,1.05rem,17.5px);
+  font-weight:400;
+  line-height:1.56;
+  letter-spacing:-.005em;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---------- book shell ---------- */
+.book{
+  position:relative;
+  perspective:2200px;
+  perspective-origin:20% 50%;
+}
+.spine{
+  position:fixed;left:0;top:0;bottom:0;width:14px;z-index:60;
+  background:linear-gradient(90deg,#0B1A22 0%,#1E4457 55%,#2C5A70 100%);
+  pointer-events:none;
+}
+.edges{
+  position:fixed;right:0;top:0;bottom:0;width:12px;z-index:60;pointer-events:none;
+  background:repeating-linear-gradient(180deg,var(--cream) 0 2px,var(--line) 2px 3px);
+  opacity:.85;
+}
+.edges__read{
+  position:absolute;left:0;right:0;top:0;height:0;
+  background:var(--blue-light);opacity:.45;
+  transition:height .12s linear;
+}
+.ribbon{
+  position:fixed;right:0;z-index:61;pointer-events:none;
+  width:28px;height:16px;top:0;
+  background:var(--orange);
+  clip-path:polygon(0 0,100% 0,100% 100%,0 100%,9px 50%);
+  will-change:transform;
+}
+.ribbon__label{
+  position:fixed;right:34px;z-index:61;pointer-events:none;
+  font-family:var(--display);font-size:12px;letter-spacing:.06em;
+  color:var(--muted);background:var(--cream);
+  padding:2px 7px;border-radius:9px;border:1px solid var(--line);
+  opacity:0;transition:opacity .25s ease;
+  white-space:nowrap;
+}
+.ribbon__label.on{opacity:1}
+@media (max-width:720px){ .ribbon__label{display:none} }
+
+/* ---------- leaves / pages ---------- */
+.stage{position:relative}
+.stack{position:sticky;top:0;height:100vh;overflow:hidden;transform-style:preserve-3d}
+.leaf{display:none}
+
+.page{
+  position:absolute;inset:0;
+  height:100%;
+  display:flex;align-items:center;
+  padding:clamp(40px,6vh,72px) calc(var(--gutter) + 14px) clamp(84px,10vh,104px) calc(var(--gutter) + 18px);
+  background:var(--cream);
+  transform-origin:left center;
+  backface-visibility:hidden;
+  will-change:transform;
+  overflow:hidden;
+}
+.page::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:56px;
+  background:linear-gradient(90deg,rgba(18,36,48,.16),rgba(18,36,48,0));
+  pointer-events:none;
+}
+.page--tint{background:var(--cream-2)}
+.page--deep{background:var(--blue);color:var(--cream)}
+.page--deep .lead,.page--deep p{color:#E7DFD1}
+
+.inner{width:100%;max-width:38rem;margin-inline:auto}
+
+/* page number */
+.folio{
+  position:absolute;bottom:clamp(14px,2.4vh,24px);right:calc(var(--gutter) + 14px);
+  font-family:var(--display);font-weight:600;font-size:12px;letter-spacing:-.01em;
+  color:var(--muted);
+}
+.page--deep .folio{color:#7E9AA8}
+.page--hero .folio{left:calc(var(--gutter) + 14px);right:auto;color:var(--muted)}
+
+/* ---------- type ---------- */
+h1{
+  font-family:var(--display);
+  font-size:clamp(44px,9.4vw,96px);
+  line-height:.96;font-weight:800;letter-spacing:-.012em;
+  text-transform:uppercase;
+  color:var(--blue);
+}
+h2{
+  font-family:var(--display);
+  font-size:clamp(23px,4.4vw,33px);
+  font-weight:700;line-height:1.16;letter-spacing:-.028em;
+  margin-bottom:1.05rem;
+}
+.lead{font-weight:500}
+strong{font-weight:700}
+.page--deep h2{color:var(--cream)}
+.page--deep em{color:#F2A86B}
+.page--deep .hush{color:#9FB4C0}
+p{margin-bottom:.72em;max-width:34rem;text-wrap:pretty}
+p:last-child{margin-bottom:0}
+.lead{font-size:1.14em;line-height:1.45;color:var(--ink);letter-spacing:-.012em}
+.beat p{margin-bottom:.16em}
+.hush{color:var(--muted);font-size:.9em}
+em{font-style:normal;font-weight:600;color:var(--orange-text)}
+
+/* ---------- hero ---------- */
+.hero{
+  display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(24px,4vh,40px);
+  align-items:center;width:100%;
+}
+.inner--wide{max-width:64rem}
+.hero__sub{
+  font-size:clamp(17px,2.4vw,21px);line-height:1.4;
+  color:var(--blue);max-width:22ch;margin-top:1.1rem;
+}
+.hero__rule{height:2px;background:var(--orange);width:72px;margin:1.4rem 0 1.1rem}
+.hero__price{font-family:var(--display);font-weight:600;font-size:clamp(18px,2.4vw,22px);letter-spacing:-.02em;color:var(--orange-text)}
+
+/* ---------- paper texture ---------- */
+.page::after{
+  content:"";position:absolute;inset:0;z-index:3;pointer-events:none;
+  background-image:url(img/paper.png);
+  background-size:240px 240px;
+  mix-blend-mode:multiply;opacity:.9;
+}
+.page--deep::after{mix-blend-mode:soft-light;opacity:.5}
+
+/* ---------- cutout hero ---------- */
+.cutout{
+  position:absolute;z-index:1;bottom:0;
+  left:50%;transform:translateX(-50%);
+  display:flex;justify-content:center;align-items:flex-end;
+  pointer-events:none;
+}
+.cutout img{
+  position:relative;z-index:1;width:auto;height:auto;display:block;
+  filter:drop-shadow(0 24px 46px rgba(18,36,48,.24));
+}
+/* soft paper fade over her upper body so text stays readable */
+.cutout::after{
+  content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:linear-gradient(180deg,
+    rgba(251,246,236,.80) 0%,
+    rgba(251,246,236,.38) 30%,
+    rgba(251,246,236,.06) 54%,
+    rgba(251,246,236,0) 70%);
+}
+.page--hero{align-items:flex-start}
+.page--hero .inner{padding-top:clamp(14px,4vh,40px)}
+
+/* ---------- glow ---------- */
+.glow{
+  position:absolute;z-index:0;pointer-events:none;
+  width:170%;aspect-ratio:1;left:50%;top:52%;
+  transform:translate(-50%,-50%);
+  background:
+    radial-gradient(circle,rgba(217,100,30,.58) 0%,rgba(217,100,30,.34) 26%,rgba(217,100,30,.12) 44%,rgba(217,100,30,0) 62%),
+    radial-gradient(circle at 42% 58%,rgba(62,112,137,.32) 0%,rgba(62,112,137,0) 48%);
+  filter:blur(30px);
+  animation:breathe 7s ease-in-out infinite;
+}
+@keyframes breathe{
+  0%,100%{opacity:.72;transform:translate(-50%,-50%) scale(1)}
+  50%    {opacity:1;  transform:translate(-50%,-50%) scale(1.07)}
+}
+
+/* ---------- entrance animation ---------- */
+.page .inner>*{opacity:0;transform:translateY(18px)}
+.page.live .inner>*{
+  opacity:1;transform:none;
+  transition:opacity .62s cubic-bezier(.2,.7,.25,1),transform .62s cubic-bezier(.2,.7,.25,1);
+}
+.page.live .inner>*:nth-child(1){transition-delay:.04s}
+.page.live .inner>*:nth-child(2){transition-delay:.12s}
+.page.live .inner>*:nth-child(3){transition-delay:.19s}
+.page.live .inner>*:nth-child(4){transition-delay:.25s}
+.page.live .inner>*:nth-child(5){transition-delay:.30s}
+.page.live .inner>*:nth-child(n+6){transition-delay:.34s}
+.page .inner.hero>*{transform:translateY(24px)}
+.page__bg img{transform:scale(1.06);transition:transform 1.6s cubic-bezier(.2,.7,.25,1)}
+.page.live .page__bg img{transform:scale(1)}
+@media (prefers-reduced-motion:reduce){
+  .page .inner>*{opacity:1!important;transform:none!important}
+  .glow{animation:none}
+  .page__bg img{transform:none!important}
+}
+body.flat .page .inner>*{opacity:1;transform:none}
+
+/* ---------- photo layers ---------- */
+.page__bg{position:absolute;inset:0;z-index:0;overflow:hidden}
+.page__bg img{width:100%;height:100%;object-fit:cover;display:block}
+.page__veil{position:absolute;inset:0;z-index:1}
+.veil-cream{background:linear-gradient(100deg,rgba(251,246,236,.96) 0%,rgba(251,246,236,.93) 46%,rgba(251,246,236,.74) 100%)}
+.veil-cream-soft{background:rgba(251,246,236,.88)}
+.veil-deep{background:linear-gradient(100deg,rgba(18,36,48,.94) 0%,rgba(18,36,48,.88) 50%,rgba(30,68,87,.72) 100%)}
+.veil-warm{background:linear-gradient(180deg,rgba(251,246,236,.42) 0%,rgba(251,246,236,.93) 62%,rgba(251,246,236,.98) 100%)}
+.page .inner{position:relative;z-index:2}
+.page .folio{z-index:2}
+
+/* pasted-in photo, like glued into a book */
+.taped{
+  position:relative;background:#fff;padding:10px 10px 42px;
+  box-shadow:0 8px 26px rgba(18,36,48,.17);
+  transform:rotate(-1.6deg);
+  width:min(100%,250px);
+}
+.taped img{width:100%;display:block;aspect-ratio:4/5;object-fit:cover}
+.taped figcaption{
+  position:absolute;left:14px;right:14px;bottom:12px;
+  font-family:var(--display);font-size:13px;letter-spacing:.03em;color:var(--muted);
+}
+.taped::before{
+  content:"";position:absolute;top:-12px;left:50%;transform:translateX(-50%) rotate(2deg);
+  width:74px;height:22px;background:rgba(217,100,30,.26);
+}
+.taped--right{transform:rotate(1.8deg)}
+
+.strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:1.5rem;max-width:33rem}
+.strip img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block}
+
+.figwide{margin-top:1.6rem;max-width:34rem}
+.figwide img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
+.figwide figcaption{font-family:var(--display);font-size:13px;color:var(--muted);margin-top:8px;letter-spacing:.03em}
+
+/* ---------- photo slots ---------- */
+.slot{
+  position:relative;background:var(--cream-2);border:1px dashed #C9B99C;
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  overflow:hidden;
+}
+.slot img{width:100%;height:100%;object-fit:cover;display:block}
+.slot__hint{
+  font-family:var(--display);font-size:13px;line-height:1.35;letter-spacing:.04em;
+  color:#9A8A6F;padding:14px;max-width:20ch;
+}
+.slot img+.slot__hint{display:none}
+.slot--portrait{aspect-ratio:3/4}
+.slot--wide{aspect-ratio:16/10}
+.slot--square{aspect-ratio:1/1}
+.slot--hero{aspect-ratio:4/5;max-height:58vh;justify-self:end;width:100%;max-width:350px;border:none;background:none;overflow:visible}
+.slot--hero img{
+  position:relative;z-index:1;border-radius:4px;
+  box-shadow:0 18px 52px rgba(18,36,48,.26),0 2px 0 rgba(255,255,255,.5);
+}
+
+.shelf{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:1.4rem}
+.shelf .slot{aspect-ratio:2/3}
+
+.route{
+  list-style:none;display:flex;flex-wrap:wrap;gap:8px;
+  margin:1.4rem 0;padding:0;
+}
+.route li{
+  display:flex;flex-direction:column;gap:1px;
+  padding:9px 15px;border-radius:10px;
+  background:rgba(217,100,30,.10);border:1px solid rgba(217,100,30,.26);
+}
+.route span{font-size:11.5px;letter-spacing:.02em;color:var(--muted)}
+.route b{font-family:var(--display);font-weight:700;font-size:21px;color:var(--orange-text);letter-spacing:-.03em}
+
+.chat{margin:1.2rem 0;display:grid;gap:7px;max-width:30rem}
+.chat p{
+  margin:0;padding:9px 14px;border-radius:14px 14px 14px 4px;
+  background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.16);
+  font-size:.95em;
+}
+.chat p:nth-child(2){margin-left:2.2rem;border-radius:14px 14px 4px 14px;background:rgba(217,100,30,.20);border-color:rgba(217,100,30,.34)}
+
+/* ---------- list ---------- */
+.items{list-style:none;display:grid;gap:.85rem;margin-top:.4rem}
+.items li{padding-left:1.5rem;position:relative;max-width:33rem}
+.items li::before{
+  content:"";position:absolute;left:0;top:.62em;width:12px;height:2px;background:var(--orange);
+}
+
+/* закладки замість рисок */
+.items--marks li{padding-left:2.1rem}
+.items--marks li::before{
+  top:.16em;left:2px;width:15px;height:23px;background:var(--orange);
+  clip-path:polygon(0 0,100% 0,100% 100%,50% 74%,0 100%);
+  border-radius:2px 2px 0 0;
+  transform-origin:top center;transform:scaleY(0);
+  opacity:.95;
+}
+.items--marks li::after{
+  content:"";position:absolute;left:2px;top:.16em;width:15px;height:23px;
+  background:linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,0) 60%);
+  clip-path:polygon(0 0,100% 0,100% 100%,50% 74%,0 100%);
+  transform-origin:top center;transform:scaleY(0);
+}
+.items--marks li>span{display:block;opacity:0;transform:translateY(9px)}
+
+.page.live .items--marks li::before,
+.page.live .items--marks li::after{
+  transform:scaleY(1);
+  transition:transform .5s cubic-bezier(.22,1.1,.36,1);
+}
+.page.live .items--marks li>span{
+  opacity:1;transform:none;
+  transition:opacity .5s ease,transform .5s cubic-bezier(.2,.7,.25,1);
+}
+.page.live .items--marks li:nth-child(1)::before,.page.live .items--marks li:nth-child(1)::after{transition-delay:.30s}
+.page.live .items--marks li:nth-child(2)::before,.page.live .items--marks li:nth-child(2)::after{transition-delay:.44s}
+.page.live .items--marks li:nth-child(3)::before,.page.live .items--marks li:nth-child(3)::after{transition-delay:.58s}
+.page.live .items--marks li:nth-child(1)>span{transition-delay:.40s}
+.page.live .items--marks li:nth-child(2)>span{transition-delay:.54s}
+.page.live .items--marks li:nth-child(3)>span{transition-delay:.68s}
+
+@media (prefers-reduced-motion:reduce){
+  .items--marks li::before,.items--marks li::after{transform:scaleY(1)!important}
+  .items--marks li>span{opacity:1!important;transform:none!important}
+}
+body.flat .items--marks li::before,body.flat .items--marks li::after{transform:scaleY(1)}
+body.flat .items--marks li>span{opacity:1;transform:none}
+
+/* ---------- cta ---------- */
+.cta{
+  display:inline-block;background:var(--orange);color:#FFF7F1;
+  font-family:var(--display);font-weight:600;font-size:clamp(16px,2.4vw,19px);letter-spacing:-.02em;
+  padding:16px 32px;border:none;border-radius:8px;text-decoration:none;
+  transition:background .18s ease,transform .12s ease;
+  margin-top:1.5rem;
+}
+.cta:hover{background:var(--orange-hover)}
+.cta:active{transform:translateY(1px)}
+.cta:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+.page--deep .cta:focus-visible{outline-color:var(--cream)}
+
+/* ---------- floating CTA ---------- */
+.floatcta{
+  --x:-50%;
+  position:fixed;z-index:65;left:50%;bottom:max(14px,env(safe-area-inset-bottom));
+  transform:translate(var(--x),130%);
+  display:inline-flex;align-items:baseline;gap:10px;white-space:nowrap;
+  background:var(--orange);color:#FFF7F1;text-decoration:none;
+  font-family:var(--display);font-weight:600;letter-spacing:-.02em;
+  padding:13px 24px;border-radius:999px;
+  box-shadow:0 10px 30px rgba(18,36,48,.30),0 2px 0 rgba(255,255,255,.18) inset;
+  opacity:0;pointer-events:none;
+  transition:transform .42s cubic-bezier(.2,.8,.25,1),opacity .32s ease,background .18s ease;
+}
+.floatcta.show{transform:translate(var(--x),0);opacity:1;pointer-events:auto}
+.floatcta:hover{background:var(--orange-hover)}
+.floatcta:active{transform:translate(var(--x),2px)}
+.floatcta:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+.floatcta__label{font-size:17px}
+.floatcta__price{font-size:12.5px;opacity:.86;font-weight:500}
+@media (max-width:720px){
+  .floatcta{
+    --x:0;
+    left:calc(var(--gutter) + 6px);right:calc(var(--gutter) + 6px);
+    justify-content:space-between;
+    padding:15px 22px;border-radius:14px;
+  }
+  .floatcta__label{font-size:17px}
+  .floatcta__price{font-size:12.5px}
+}
+@media (max-width:360px){
+  .floatcta{padding:14px 18px}
+  .floatcta__label{font-size:16px}
+  .floatcta__price{font-size:11.5px}
+}
+@media (prefers-reduced-motion:reduce){
+  .floatcta{transition:opacity .2s ease}
+  .floatcta.show{transform:translate(-50%,0)}
+}
+
+/* ---------- flat mode ---------- */
+body.flat .book{perspective:none}
+body.flat .stage{height:auto!important}
+body.flat .stack{position:static;height:auto;overflow:visible}
+body.flat .page{
+  position:relative;inset:auto;height:auto;min-height:0;transform:none!important;opacity:1!important;
+  padding-top:clamp(56px,9vh,96px);padding-bottom:clamp(56px,9vh,96px);
+}
+body.flat .folio{display:none}
+body.flat .ribbon,body.flat .ribbon__label,body.flat .edges__read{display:none}
+body.flat .slot--hero{max-height:none}
+
+@media (max-width:720px){
+  body{font-size:15px;line-height:1.5}
+  .page{padding:clamp(26px,4.5vh,44px) calc(var(--gutter) + 14px) clamp(72px,10vh,86px)}
+  h1{font-size:clamp(34px,10.4vw,60px);letter-spacing:-.004em}
+  h2{font-size:clamp(21px,5.6vw,27px);margin-bottom:.7rem}
+  p{margin-bottom:.55em}
+  .lead{font-size:1.08em;line-height:1.42}
+  .hero{gap:10px}
+  .hero__sub{font-size:15px;margin-top:.55rem;line-height:1.32}
+  .hero__rule{margin:.7rem 0 .6rem;width:48px}
+  .hero__price{font-size:19px}
+  .cta{margin-top:.85rem;padding:12px 24px;font-size:16px}
+  .slot--hero{justify-self:center;width:min(52%,152px);max-height:21vh;aspect-ratio:4/5}
+  /* Олена тримає весь перший екран, назва — від лівого краю */
+  .page--hero{align-items:flex-start;padding-left:18px;padding-right:12px}
+  .page--hero h1{
+    text-align:left;width:100%;
+    font-size:16.4vw;line-height:.94;letter-spacing:-.028em;
+    margin:0 0 clamp(40px,9vh,130px);
+    text-shadow:0 1px 0 rgba(248,243,233,.6);
+  }
+  .cutout{
+    top:0;bottom:0;height:100%;
+    left:auto;right:-40%;transform:none;
+    width:132%;max-width:none;align-items:stretch;
+  }
+  .cutout img{height:100%;width:100%;max-height:none;object-fit:cover;object-position:46% 34%}
+  .cutout::after{
+    background:
+      linear-gradient(96deg,
+        rgba(248,243,233,.93) 0%,
+        rgba(248,243,233,.80) 30%,
+        rgba(248,243,233,.30) 52%,
+        rgba(248,243,233,.04) 72%,
+        rgba(248,243,233,0) 86%),
+      linear-gradient(180deg,
+        rgba(248,243,233,.58) 0%,
+        rgba(248,243,233,.10) 18%,
+        rgba(248,243,233,0) 34%);
+  }
+  .page--hero .inner{padding-top:clamp(12px,2.6vh,28px);padding-bottom:0}
+  .page--hero .hero>div{max-width:none}
+  .page--hero .hero__sub{max-width:17ch}
+  .page--hero .hero p:not(.hero__sub):not(.hero__price){max-width:23ch}
+  .page--hero .cta{max-width:88%;box-shadow:0 10px 26px rgba(18,36,48,.24)}
+  .strip{margin-top:.9rem;gap:6px;max-width:none}
+  .strip img{aspect-ratio:1/1}
+  .taped{width:min(48%,142px);padding:5px 5px 23px;margin-inline:auto}
+  .taped img{aspect-ratio:1/1}
+  .taped figcaption{font-size:10px;left:8px;right:8px;bottom:7px}
+  .taped::before{width:52px;height:16px;top:-8px}
+  .taped--right{float:none!important;margin:1rem auto 0!important}
+  .figwide{margin-top:1rem}
+  .figwide img{aspect-ratio:16/10}
+  .figwide figcaption{font-size:11px;margin-top:5px}
+  .items{gap:.5rem}
+  .items li{padding-left:1.15rem}
+  .items--marks li{padding-left:1.95rem}
+  .route{display:grid;grid-template-columns:repeat(2,1fr)}
+  .folio{font-size:12px;bottom:10px}
+}
+@media (max-width:720px) and (max-height:660px){
+  body{font-size:14px}
+  .page{padding:16px calc(var(--gutter) + 12px) 66px}
+  .page--hero{padding-left:18px;padding-right:12px}
+  h1{font-size:clamp(31px,9.4vw,54px)}
+  .hero__sub{font-size:14px}
+  .slot--hero{max-height:13vh;width:min(38%,108px)}
+  .cutout{right:-34%;width:126%}
+  .cutout img{object-position:46% 30%}
+  .page--hero h1{font-size:15.6vw;margin-bottom:clamp(20px,4vh,80px)}
+  .taped{width:min(42%,124px);padding:5px 5px 22px}
+  .taped figcaption{font-size:9px;bottom:6px}
+  .figwide img{aspect-ratio:16/8}
+  .figwide figcaption{display:none}
+  .route{gap:6px;margin:.9rem 0}
+  .route li{padding:5px 10px}
+  .route b{font-size:16px}
+  .route span{font-size:10px}
+}
+@media (min-width:900px){
+  .hero{grid-template-columns:minmax(0,1fr) minmax(300px,400px);gap:clamp(30px,4vw,60px);align-items:center}
+  .page--hero .hero{grid-template-columns:minmax(0,1fr)}
+  .page--hero{align-items:center}
+  .page--hero .inner{padding-top:0;padding-right:min(46vw,580px)}
+  .cutout{left:auto;right:calc(var(--gutter) - 2vw);transform:none}
+  .cutout img{max-height:88vh}
+  .cutout::after{background:linear-gradient(180deg,rgba(251,246,236,.34) 0%,rgba(251,246,236,0) 34%)}
+  .inner--wide.hero>div:first-child{padding-bottom:clamp(20px,5vh,56px)}
+  .page{padding-left:calc(var(--gutter) + 40px)}
+  .inner{max-width:46rem}
+  .inner--wide{max-width:64rem}
+}
+@media (prefers-reduced-motion:reduce){
+  .page{transform:none!important;opacity:1!important}
+}
+@media (max-width:344px){
+  body{font-size:13px;line-height:1.44}
+  .page{padding:12px 20px 62px}
+  .lead{font-size:1.04em}
+  p{margin-bottom:.45em}
+  .route{gap:5px;margin:.7rem 0}
+  .route li{padding:4px 8px}
+  .route b{font-size:15px}
+  .route span{font-size:9.5px}
+  .taped{width:min(38%,104px)}
+  h2{font-size:19px;margin-bottom:.5rem}
+  .slot--hero{max-height:16vh;width:min(38%,104px)}
+}
+</style>
+</head>
+<body>
+
+<div class="spine" aria-hidden="true"></div>
+<div class="edges" aria-hidden="true"><div class="edges__read" id="edgesRead"></div></div>
+<div class="ribbon" id="ribbon" aria-hidden="true"></div>
+<div class="ribbon__label" id="ribbonLabel" aria-hidden="true">1 / 9</div>
+<a class="floatcta" id="floatcta" href="https://t.me/lennykravetsbot?start=6aa94b73ce9c5be522028c4f" target="_blank" rel="noopener noreferrer" data-checkout>
+  <span class="floatcta__label">Я з вами</span>
+  <span class="floatcta__price">395 грн / місяць</span>
+</a>
+<div class="sr-progress" role="status" aria-live="polite" id="srProgress" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)"></div>
+
+<main class="book" id="book">
+<div class="stage" id="stage"><div class="stack" id="stack">
+
+  <!-- 1 -->
+  <article class="page page--hero">
+    <div class="cutout">
+      <span class="glow" aria-hidden="true"></span>
+      <img src="img/olena-cut-b.webp" alt="Олена Кравець сміється, спершись на табурет">
+    </div>
+    <div class="inner inner--wide hero">
+      <div>
+        <h1>Читуни</h1>
+        <p class="hero__sub">Книжковий rehab для тих, хто купує книжки швидше, ніж читає.</p>
+        <div class="hero__rule"></div>
+        <p>Одна хороша й нарешті дочитана книжка на місяць. Велику книжку розкладаємо на маленькі «дочитати до…» — і доходимо до останньої сторінки.</p>
+        <p class="hero__price">395 грн / місяць</p>
+        <a class="cta" href="https://t.me/lennykravetsbot?start=6aa94b73ce9c5be522028c4f" target="_blank" rel="noopener noreferrer" data-checkout>О, хочу з вами</a>
+      </div>
+    </div>
+    <span class="folio">1 / 9</span>
+  </article>
+
+  <!-- 2 -->
+  <article class="page page--tint">
+    <div class="inner">
+      <h2>Я люблю читати. Справді люблю</h2>
+      <p>Просто останні кілька років це дивно виглядає: книжки я купую регулярно, а читаю значно рідше.</p>
+      <p>На тумбочці біля ліжка лежать три. Ще дві їздять зі мною у валізі. Одну я починала двічі — і вже купила наступну.</p>
+      <p class="lead">У моєму домі прекрасна бібліотека намірів і зовсім небагато дочитаних книжок.</p>
+      <figure class="taped taped--right" style="float:right;margin:.2rem 0 .6rem 1.4rem">
+        <img src="img/books-bag.jpg" alt="Книжки й нотатник у шкіряній сумці">
+        <figcaption>Ті самі, що їздять у валізі</figcaption>
+      </figure>
+      <p>Якщо вам зараз трохи смішно й трохи незручно — схоже, ви теж із наших.</p>
+    </div>
+    <span class="folio">2 / 9</span>
+  </article>
+
+  <!-- 3 -->
+  <article class="page page--deep">
+    <div class="page__bg"><img src="img/books-window.jpg" alt="Стос книжок і свічка біля вікна" style="object-position:50% 40%"></div>
+    <div class="page__veil veil-deep"></div>
+    <div class="inner">
+      <h2>Ми не розлюбили книжки</h2>
+      <p>Просто тепер між нами й книжкою весь час хтось стає.</p>
+      <div class="beat" style="margin-top:1.1rem">
+        <p>Телефон. Робота. Новини. Діти.</p>
+        <p>Серіал. Повідомлення. Втома.</p>
+        <p>Ще одне «дуже важливе відео».</p>
+      </div>
+      <p style="margin-top:1.2rem">І одного дня я подумала: може, мені потрібні не просто ритм і маршрут, а ще й хороша компанія? Таких самих людей — закоханих у книжки і трохи «ждунів».</p>
+      <p class="lead"><em>Так і народилися ЧИТУНИ.</em></p>
+    </div>
+    <span class="folio">3 / 9</span>
+  </article>
+
+  <!-- 4 -->
+  <article class="page">
+    <div class="page__bg"><img src="img/olena-store.jpg" alt="Олена Кравець обирає книжки на полицях у книгарні" style="object-position:72% 40%"></div>
+    <div class="page__veil veil-cream"></div>
+    <div class="inner">
+      <h2>Одна книжка. І цього разу — до кінця</h2>
+      <p>Щомісяця я обираю одну хорошу книжку. Ви купуєте її або дістаєте з полиці — і починаємо разом. На першій зустрічі я читаю вам уголос початок, десь двадцять–тридцять сторінок, щоб ми разом увійшли в історію.</p>
+      <p>Потім я зупиняюся й кажу: <em>«Добре, тепер читаємо самі. Цієї пʼятниці зустрічаємося на сторінці 73».</em></p>
+      <ol class="route">
+        <li><span>пʼятниця</span><b>73</b></li>
+        <li><span>вівторок</span><b>128</b></li>
+        <li><span>пʼятниця</span><b>196</b></li>
+        <li><span>вівторок</span><b>251</b></li>
+      </ol>
+      <p class="lead">Не треба думати, як подужати 360 сторінок. Є просто наступна зупинка.</p>
+    </div>
+    <span class="folio">4 / 9</span>
+  </article>
+
+  <!-- 5 -->
+  <article class="page">
+    <div class="inner inner--wide hero">
+      <div>
+        <h2>У цьому, власне, весь фокус</h2>
+        <p>Книжку все одно читаєте ви. Я не перетворюю її на аудіокнижку й не читаю замість вас.</p>
+        <p class="lead">Я читаю разом з вами, слідкую за маршрутом і тримаю ритм.</p>
+        <p>У визначений день збираємося на домовленій сторінці: говоримо про сюжет, героїв і власні успіхи. Я відкриваю книжку там, де всі зупинилися, читаю далі — і називаю нову сторінку.</p>
+      </div>
+      <div class="slot slot--hero">
+        <span class="glow" aria-hidden="true"></span>
+        <img src="img/olena-portrait.jpg" alt="Олена Кравець усміхається, затуливши обличчя рукою">
+      </div>
+    </div>
+    <span class="folio">5 / 9</span>
+  </article>
+
+  <!-- 6 -->
+  <article class="page page--deep">
+    <div class="page__bg"><img src="img/books-wall.jpg" alt="Стіна з розгорнутих книжок" style="object-position:50% 50%"></div>
+    <div class="page__veil veil-deep"></div>
+    <div class="inner">
+      <h2>І цим маршрутом іде компанія</h2>
+      <p>Між зустрічами кожен читає у своєму житті: в ліжку, у потязі, в метро, в кавʼярні, поки дитина на тренуванні або поки знайшлися ті самі двадцять хвилин тиші.</p>
+      <p>У різних містах, квартирах і країнах люди живуть абсолютно різне життя — і водночас читають одну історію.</p>
+      <div class="chat">
+        <p>«Я вже на місці. Ви ще далеко?»</p>
+        <p>«Я на 48-й, не чекайте».</p>
+      </div>
+      <p>А хтось дочитав за три дні й тепер сидить тихо, як людина, яка знає майбутнє.</p>
+    </div>
+    <span class="folio">6 / 9</span>
+  </article>
+
+  <!-- 7 -->
+  <article class="page page--tint">
+    <div class="inner">
+      <h2>А потім настає найприємніше</h2>
+      <p>Одного дня ми перегортаємо останню сторінку. І книжка переходить із великої домашньої категорії <span class="hush">«треба якось повернутися»</span> до значно приємнішої — <em>«Дочитано»</em>.</p>
+      <p>Після цього збираємося в Zoom і говоримо вже про всю книжку. Іноді запрошуємо автора, перекладача чи редактора. А іноді просто говоримо своєю компанією: триста сторінок, прожитих разом, — уже достатній привід зустрітися.</p>
+      <figure class="figwide">
+        <img src="img/books-window.jpg" alt="Дочитаний стос книжок біля вікна">
+        <figcaption>І одразу починається наступний місяць</figcaption>
+      </figure>
+    </div>
+    <span class="folio">7 / 9</span>
+  </article>
+
+  <!-- 8 -->
+  <article class="page">
+    <div class="inner">
+      <h2>А якщо я відстану?</h2>
+      <p class="lead">Відстанете. Так буває.</p>
+      <figure class="taped taped--right" style="float:right;margin:.2rem 0 .6rem 1.4rem">
+        <img src="img/books-chair.jpg" alt="Людина в кріслі з книжкою на обличчі">
+        <figcaption>Буває і так</figcaption>
+      </figure>
+      <p>Книжка почекає, ми теж. Можна наздогнати через два дні. Можна через тиждень. Тут ніхто не веде журнал і не забирає книжку за погану поведінку.</p>
+      <p>Нам потрібен ритм, який допомагає читати, а не ще одна сфера життя, де треба почуватися винними.</p>
+      <p>А якщо книжка зовсім не зайшла — навіть дуже хороші книжки іноді просто не наші. Читайте свою, але в цьому ж ритмі.</p>
+    </div>
+    <span class="folio">8 / 9</span>
+  </article>
+
+  <!-- 9 -->
+  <article id="join" class="page page--deep">
+    <div class="page__bg"><img src="img/books-console.jpg" alt="Стоси книжок на консолі" style="object-position:30% 50%"></div>
+    <div class="page__veil veil-deep"></div>
+    <div class="inner">
+      <h2>Для тих, хто досі любить читати</h2>
+      <ul class="items items--marks">
+        <li><span>У кого книжок «на потім» уже більше, ніж хотілося б визнавати.</span></li>
+        <li><span>Хто сумує за станом, коли можна зникнути в історії на годину.</span></li>
+        <li><span>Кому легше рухатися, коли є конкретна точка попереду й люди поруч.</span></li>
+      </ul>
+      <p class="lead" style="margin-top:1.3rem">Одна книжка на місяць. Від першої сторінки до останньої. <em>395 грн / місяць.</em></p>
+      <p>Наступну книжку можна знову купити й відкласти. А можна прочитати з нами.</p>
+      <a class="cta" href="https://t.me/lennykravetsbot?start=6aa94b73ce9c5be522028c4f" target="_blank" rel="noopener noreferrer" data-checkout>Хочу до Читунів</a>
+    </div>
+    <span class="folio">9 / 9</span>
+  </article>
+
+</div></div>
+</main>
+
+
+<script>
+(function(){
+  var stage=document.getElementById('stage');
+  var stack=document.getElementById('stack');
+  var pages=Array.prototype.slice.call(stack.querySelectorAll('.page'));
+  var N=pages.length;
+  var TURN=0.9;
+  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var flat=reduce;
+  var ticking=false, turnPx=0;
+
+  pages.forEach(function(p,i){ p.style.zIndex=String(N-i); });
+
+  function fits(){
+    var vh=window.innerHeight;
+    // міряємо завжди в книжковому режимі, інакше плаский режим міряє сам себе
+    var wasFlat=document.body.classList.contains('flat');
+    if(wasFlat) document.body.classList.remove('flat');
+    var bad=pages.some(function(p){
+      var el=p.querySelector('.inner');
+      if(!el) return false;
+      var cs=getComputedStyle(p);
+      var avail=vh-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom);
+      return el.scrollHeight>avail+2;
+    });
+    if(wasFlat) document.body.classList.add('flat');
+    return !bad;
+  }
+
+  function layout(){
+    var vh=window.innerHeight;
+    turnPx=Math.round(vh*TURN);
+    stage.style.height=((N-1)*turnPx+vh)+'px';
+  }
+
+  var ribbon=document.getElementById('ribbon');
+  var label=document.getElementById('ribbonLabel');
+  var read=document.getElementById('edgesRead');
+  var sr=document.getElementById('srProgress');
+  var lastPage=-1, hideTimer=null;
+  var fcta=document.getElementById('floatcta');
+
+  function toggleCta(cur){
+    // ховаємо на першому екрані (там вже є кнопка) і на двох останніх
+    var show = cur>1 && cur<N;
+    fcta.classList.toggle('show',show);
+  }
+
+  function progress(overall){
+    var vh=window.innerHeight;
+    var top=Math.round(overall*(vh-16));
+    ribbon.style.transform='translateY('+top+'px)';
+    label.style.transform='translateY('+Math.max(0,Math.min(vh-24,top-6))+'px)';
+    read.style.height=Math.round(overall*100)+'%';
+    var cur=Math.min(N,Math.floor(overall*(N-1))+1);
+    if(cur!==lastPage){
+      lastPage=cur;
+      if(pages[cur-1]) pages[cur-1].classList.add('live');
+      if(pages[cur]) pages[cur].classList.add('live');
+      label.textContent=cur+' / '+N;
+      sr.textContent='Сторінка '+cur+' з '+N;
+      toggleCta(cur);
+    }
+    label.classList.add('on');
+    clearTimeout(hideTimer);
+    hideTimer=setTimeout(function(){ label.classList.remove('on'); },1400);
+  }
+
+  function frame(){
+    ticking=false;
+    if(flat) return;
+    var p=-stage.getBoundingClientRect().top;
+    progress(Math.min(1,Math.max(0,p/((N-1)*turnPx))));
+    for(var i=0;i<N-1;i++){
+      var t=Math.min(1,Math.max(0,(p-i*turnPx)/turnPx));
+      var el=pages[i];
+      if(t<=0){ el.style.transform='none'; el.style.opacity='1'; continue; }
+      var e=t*t*(3-2*t);
+      el.style.transform='rotateY('+(-e*104).toFixed(2)+'deg)';
+      el.style.opacity=(1-Math.max(0,(t-.74)/.26)*0.92).toFixed(3);
+    }
+  }
+
+  function onScroll(){ if(!ticking){ ticking=true; requestAnimationFrame(frame); } }
+
+  function apply(){
+    document.body.classList.toggle('flat',flat);
+    if(flat){
+      stage.style.height='auto';
+      pages.forEach(function(p){p.style.transform='';p.style.opacity='';p.classList.add('live');});
+      var last=pages[N-1];
+      window.addEventListener('scroll',function(){
+        var past=window.scrollY>window.innerHeight*0.8;
+        var atEnd=last.getBoundingClientRect().top<window.innerHeight*0.9;
+        fcta.classList.toggle('show',past&&!atEnd);
+      },{passive:true});
+    }else{
+      layout(); frame();
+      pages[0].classList.add('live');
+    }
+  }
+
+  document.querySelectorAll('a[href^="#"]:not([data-checkout])').forEach(function(a){
+    a.addEventListener('click',function(ev){
+      var target=document.querySelector(a.getAttribute('href'));
+      if(!target) return;
+      ev.preventDefault();
+      if(flat){ target.scrollIntoView({behavior:'smooth'}); return; }
+      var i=pages.indexOf(target);
+      if(i<0) return;
+      window.scrollTo({top:stage.offsetTop+i*turnPx,behavior:'smooth'});
+    });
+  });
+
+  window.addEventListener('scroll',onScroll,{passive:true});
+  window.addEventListener('resize',function(){
+    if(!reduce) flat=!fits();
+    apply(); onScroll();
+  },{passive:true});
+
+  function recheck(){
+    if(reduce) return;
+    layout();
+    var f=!fits();
+    if(f!==flat){ flat=f; apply(); } else if(!flat){ frame(); }
+  }
+
+  layout();
+  if(!reduce) flat=!fits();
+  apply();
+
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(recheck);
+  window.addEventListener('load',recheck);
+  setTimeout(recheck,1200);
+})();
+</script>
+</body>
+</html>
